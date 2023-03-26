@@ -22,11 +22,15 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v3
+    - uses: actions/cache@v3
+      id: cache-packages  # give it a name for checking the cache hit-or-not
       with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-        cache-dependency-path: express/package-lock.json
+        path: ./packages/  # what we cache: the folder
+        key: ${{ runner.os }}-packages-${{ hashFiles('**/packages*.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-packages-
+    - run: package-installer packages.txt
+      if: steps.cache-packages.outputs.cache-hit != 'true'
     - run: npm ci
     - run: npm run build --if-present
     - run: npm install
