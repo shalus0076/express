@@ -5,9 +5,9 @@ name: Node.js CI
 
 on:
   push:
-    branches: [ master ]
+    branches: [ "master" ]
   pull_request:
-    branches: [ master ]
+    branches: [ "master" ]
 
 jobs:
   build:
@@ -16,22 +16,15 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [ 18.x]
+        node-version: [18.x]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:
     - uses: actions/checkout@v3
     - name: Use Node.js ${{ matrix.node-version }}
-    - uses: actions/cache@v3
-      id: cache-packages  # give it a name for checking the cache hit-or-not
+      uses: actions/setup-node@v3
       with:
-        path: ./packages/  # what we cache: the folder
-        key: ${{ runner.os }}-packages-${{ hashFiles('**/packages*.txt') }}
-        restore-keys: |
-          ${{ runner.os }}-packages-
-    - run: package-installer packages.txt
-      if: steps.cache-packages.outputs.cache-hit != 'true'
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
     - run: npm ci
     - run: npm run build --if-present
-    - run: npm install
-    - run: node index.js
